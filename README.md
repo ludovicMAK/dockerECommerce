@@ -1,6 +1,6 @@
 # Documentation du Projet E-Commerce Microservices
 
-## Table des Matières 2
+## Table des Matières
 
 1. [Introduction](#introduction)
 2. [Architecture du Projet](#architecture-du-projet)
