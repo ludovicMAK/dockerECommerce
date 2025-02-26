@@ -5,3 +5,31 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:80"
+    depends_on:
+      - order-service
+    networks:
+      - ecommerce-network
+  order-service:
+    build:
+      context: ./services/order-service
+      target: production
+    environment:
+      - MONGO_URI=${MONGODB_URI}
+    depends_on:
+      - order-db
+    networks:
+      - ecommerce-network
+  order-db:
+    image: mongo:4.4
+    container_name: order-db
+    networks:
+      - ecommerce-network
+    volumes:
+      - order-db-data:/data/db
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+volumes:
+  order-db-data:
