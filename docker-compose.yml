@@ -26,6 +26,27 @@ services:
       - ecommerce-network
     volumes:
       - order-db-data:/data/db
+  auth-service:
+    container_name: auth-service
+    build:
+      context: services/auth-service
+      dockerfile: Dockerfile
+    environment:
+      - MONGODB_URI=${MONGODB_URI_AUTH}
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "3001:3001"
+    depends_on:
+      - auth-db
+    networks:
+      - ecommerce-network
+  auth-db:
+    image: mongo:8.0
+    container_name: auth-db
+    networks:
+      - ecommerce-network
+    volumes:
+      - auth-db-data:/data/db
 
 networks:
   ecommerce-network:
@@ -33,3 +54,4 @@ networks:
 
 volumes:
   order-db-data:
+  auth-db-data:
