@@ -47,6 +47,19 @@ services:
       - ecommerce-network
     volumes:
       - auth-db-data:/data/db
+  product-service:
+    container_name: product-service
+    build:
+      context: services/product-service
+      dockerfile: Dockerfile
+    environment:
+      - MONGODB_URI=${MONGODB_URI_PRODUCT}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - product-db
+    networks:
+      - ecommerce-network
 
 networks:
   ecommerce-network:
@@ -55,3 +68,4 @@ networks:
 volumes:
   order-db-data:
   auth-db-data:
+  product-db-data:
