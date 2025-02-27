@@ -6,7 +6,7 @@ RUN npm install --production --frozen-lockfile
 
 COPY . .
 
-FROM node:18-alpine
+FROM node:18-alpine as production
 WORKDIR /app
 COPY --from=build-stage /app /app
 

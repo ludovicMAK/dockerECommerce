@@ -3,11 +3,13 @@ WORKDIR /app
 
 RUN apk --no-cache add curl
 
-COPY package.json package-lock.json ./ 
+COPY  services/product-service/package.json  services/product-service/package-lock.json ./ 
 RUN npm install --production --frozen-lockfile
 
 COPY . .
-COPY init-products.sh /app/init-products.sh
+COPY scripts/init-products.sh /app/init-products.sh
+
+
 
 RUN chmod +x /app/init-products.sh
 
