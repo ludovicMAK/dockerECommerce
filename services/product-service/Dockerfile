@@ -1,25 +1,24 @@
-FROM node:18-alpine AS build-stage
-WORKDIR /app
+COPY services/product-service/src/ ./src/
 
-RUN apk --no-cache add curl
-
-COPY package.json  package-lock.json ./ 
-RUN npm install --production --frozen-lockfile
-
-COPY . .
-
+# Copier le script d'initialisation depuis le dossier scripts
+COPY scripts/init-products.sh /app/init-products.sh
 RUN chmod +x /app/init-products.sh
 
+# Étape de production
 FROM node:18-alpine AS production
 WORKDIR /app
 
 RUN apk --no-cache add curl
 
-
+# Copier les fichiers de l'étape de build
 COPY --from=build-stage /app /app
 
+# Créer un utilisateur non-root
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
 EXPOSE 3000
-CMD ["sh", "-c", "node src/app.js"]
+
+# Exécuter le script d'initialisation et démarrer l'application
+CMD ["sh", "-c", "/app/init-products.sh & node src/app.js"]
+ 
