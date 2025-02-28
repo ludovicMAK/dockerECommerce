@@ -1,3 +1,13 @@
+FROM node:18-alpine AS build-stage
+WORKDIR /app
+
+RUN apk --no-cache add curl
+
+# Copier les fichiers de dépendances
+COPY services/product-service/package*.json ./
+RUN npm install --production
+
+# Copier le reste des fichiers de l'application
 COPY services/product-service/src/ ./src/
 
 # Copier le script d'initialisation depuis le dossier scripts
@@ -21,4 +31,3 @@ EXPOSE 3000
 
 # Exécuter le script d'initialisation et démarrer l'application
 CMD ["sh", "-c", "/app/init-products.sh & node src/app.js"]
- 

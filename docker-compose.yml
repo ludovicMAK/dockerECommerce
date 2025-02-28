@@ -16,6 +16,7 @@ services:
       - order-service
     networks:
       - ecommerce-network
+
   order-service:
     build:
       context: ./services/order-service
@@ -32,7 +33,7 @@ services:
     networks:
       - ecommerce-network
     restart: unless-stopped
-
+ 
   order-db:
     image: mongo:4.4
     container_name: order-db
@@ -44,7 +45,7 @@ services:
       - order-db-data:/data/db
     environment:
       - MONGO_INITDB_DATABASE=orders
-
+ 
   auth-service:
     container_name: auth-service
     build:
@@ -62,6 +63,7 @@ services:
       - auth-db
     networks:
       - ecommerce-network
+ 
   auth-db:
     image: mongo:4.4
     container_name: auth-db
@@ -73,7 +75,7 @@ services:
       - auth-db-data:/data/db
     environment:
       - MONGO_INITDB_DATABASE=auth
-
+ 
   product-service:
     container_name: product-service
     build:
@@ -91,7 +93,7 @@ services:
     networks:
       - ecommerce-network
     restart: unless-stopped
-
+ 
   product-db:
     image: mongo:4.4
     container_name: product-db
@@ -103,11 +105,11 @@ services:
       - product-db-data:/data/db
     environment:
       - MONGO_INITDB_DATABASE=products
-
+ 
 networks:
   ecommerce-network:
     driver: bridge
-
+ 
 volumes:
   order-db-data:
   auth-db-data:
