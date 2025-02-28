@@ -1,7 +1,7 @@
 FROM node:18-alpine as build-stage
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY package.json ./
 RUN npm install --production --frozen-lockfile
 
 COPY . .
