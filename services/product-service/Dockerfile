@@ -3,13 +3,10 @@ WORKDIR /app
 
 RUN apk --no-cache add curl
 
-COPY  services/product-service/package.json  services/product-service/package-lock.json ./ 
+COPY package.json  package-lock.json ./ 
 RUN npm install --production --frozen-lockfile
 
 COPY . .
-COPY scripts/init-products.sh /app/init-products.sh
-
-
 
 RUN chmod +x /app/init-products.sh
 
@@ -25,4 +22,4 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
 EXPOSE 3000
-CMD ["sh", "-c", "/app/init-products.sh & node src/app.js"]
+CMD ["sh", "-c", "node src/app.js"]

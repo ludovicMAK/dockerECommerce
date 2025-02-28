@@ -9,6 +9,7 @@ services:
       - order-service
     networks:
       - ecommerce-network
+  
   order-service:
     build:
       context: ./services/order-service
@@ -19,6 +20,7 @@ services:
       - order-db
     networks:
       - ecommerce-network
+  
   order-db:
     image: mongo:4.4
     container_name: order-db
@@ -26,6 +28,7 @@ services:
       - ecommerce-network
     volumes:
       - order-db-data:/data/db
+  
   auth-service:
     container_name: auth-service
     build:
@@ -40,6 +43,7 @@ services:
       - auth-db
     networks:
       - ecommerce-network
+  
   auth-db:
     image: mongo:8.0
     container_name: auth-db
@@ -47,26 +51,34 @@ services:
       - ecommerce-network
     volumes:
       - auth-db-data:/data/db
+  
+  product-db:
+    image: mongo:4.4
+    container_name: product-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/product-db:/data/db
+      - ./scripts/init-products.sh:/docker-entrypoint-initdb.d/init-products.sh  # Exécute le script d'init automatiquement
+    networks:
+      - ecommerce-network  # Correction: Utilisation du réseau ecommerce-network
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+  
   product-service:
     container_name: product-service
     build:
-      context: .
-      dockerfile: services/product-service/Dockerfile
+      context: services/product-service
+      dockerfile: Dockerfile
     environment:
-      - MONGODB_URI=${MONGODB_URI_PRODUCT}
+      MONGO_URL: "mongodb://product-db:27017/mydatabase"
     ports:
       - "3000:3000"
     depends_on:
       - product-db
     networks:
       - ecommerce-network
-  product-db:
-    image: mongo:4.4
-    container_name: product-db
-    networks:
-      - ecommerce-network
-    volumes:
-      - product-db-data:/data/db
 
 networks:
   ecommerce-network:
