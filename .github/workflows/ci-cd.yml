@@ -26,6 +26,7 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-20.04
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'develop' }}
     steps:
       - uses: actions/checkout@v2
       
