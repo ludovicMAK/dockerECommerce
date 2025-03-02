@@ -13,6 +13,8 @@ dist-ssr
 *.local
 .vite
 package-lock.json
+.env
+.env.production
 
 # Editor directories and files
 .vscode/*
