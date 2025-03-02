@@ -2,14 +2,11 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 env:
-  REGISTRY: registry.jgrandville.fr
-  REGISTRY_USER: joshua
-  REGISTRY_PASSWORD: EsgiRegistry
   IMAGE_NAME: e-commerce
 
 jobs:
@@ -29,54 +26,65 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-20.04
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'develop' }}
     steps:
       - uses: actions/checkout@v2
       
       - name: Login to Private Registry
         uses: docker/login-action@v1
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ env.REGISTRY_USER }}
-          password: ${{ env.REGISTRY_PASSWORD }}
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: ${{ secrets.REGISTRY_USER }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
           
       - name: Build and Push Frontend
         run: |
-          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest ./frontend
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+          docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} ./frontend
+          docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+          if [ ${{ github.ref }} = 'refs/heads/main' ]; then
+            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:latest
+            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:latest
+          fi
+          if [ ${{ github.ref }} = 'refs/heads/develop' ]; then
+            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:develop
+            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:develop
+          fi
           
       - name: Build and Push Auth Service
         run: |
-          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/auth-service:${{ github.sha }} -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/auth-service:latest ./services/auth-service
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/auth-service:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/auth-service:latest
+          docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:${{ github.sha }} ./services/auth-service
+          docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:${{ github.sha }}
+          if [ ${{ github.ref }} = 'refs/heads/main' ]; then
+            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:latest
+            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:latest
+          fi
+          if [ ${{ github.ref }} = 'refs/heads/develop' ]; then
+            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:develop
+            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:develop
+          fi
           
       - name: Build and Push Product Service
         run: |
-          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }} -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/product-service:latest ./services/product-service
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/product-service:latest
+          docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }} ./services/product-service
+          docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }}
+          if [ ${{ github.ref }} = 'refs/heads/main' ]; then
+            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:latest
+            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:latest
+          fi
+          if [ ${{ github.ref }} = 'refs/heads/develop' ]; then
+            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:develop
+            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:develop
+          fi
           
       - name: Build and Push Order Service
         run: |
-          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/order-service:${{ github.sha }} -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/order-service:latest ./services/order-service
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/order-service:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/order-service:latest
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-          
-      - name: Deploy to Production
-        run: |
-          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "cd /opt/e-commerce && \
-          docker login -u ${{ env.REGISTRY_USER }} -p ${{ env.REGISTRY_PASSWORD }} ${{ env.REGISTRY }} && \
-          docker-compose -f docker-compose.prod.yml pull && \
-          docker-compose -f docker-compose.prod.yml up -d --force-recreate" 
+          docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:${{ github.sha }} ./services/order-service
+          docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:${{ github.sha }}
+          if [ ${{ github.ref }} = 'refs/heads/main' ]; then
+            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:latest
+            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:latest
+          fi
+          if [ ${{ github.ref }} = 'refs/heads/develop' ]; then
+            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:develop
+            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:develop
+          fi 
