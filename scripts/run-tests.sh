@@ -102,9 +102,29 @@ main() {
     ((TOTAL_TESTS++))
 
     # Tests frontend
-    run_frontend_tests
-    if [ $? -ne 0 ]; then
-        ((FAILED_TESTS++))
+    echo "================================================"
+    echo "🔍 Testing Frontend"
+    echo "📦 Installing dependencies..."
+    cd frontend
+
+    # Configuration spécifique pour les tests frontend
+    export NODE_ENV=test
+    export ROLLUP_SKIP_LOAD_NATIVE_PLUGIN=true
+
+    # Installation des dépendances
+    npm ci
+    npm install --no-save @rollup/rollup-linux-x64-gnu@4.6.1
+
+    echo "🧪 Running unit tests..."
+    npm run test:unit
+
+    if [ $? -eq 0 ]; then
+        echo "✅ Frontend tests passed"
+        cd ..
+    else
+        echo "❌ Frontend tests failed"
+        cd ..
+        exit 1
     fi
     ((TOTAL_TESTS++))
 
