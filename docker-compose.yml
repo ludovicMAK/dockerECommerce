@@ -6,10 +6,10 @@ services:
     ports:
       - "8080:80"
     environment:
-      - VITE_PRODUCT_SERVICE_URL=/api/products
-      - VITE_AUTH_SERVICE_URL=/api/auth
-      - VITE_ORDER_SERVICE_URL=/api/orders
-      - NODE_ENV=production
+      - VITE_PRODUCT_SERVICE_URL=${VITE_PRODUCT_SERVICE_URL}
+      - VITE_AUTH_SERVICE_URL=${VITE_AUTH_SERVICE_URL}
+      - VITE_ORDER_SERVICE_URL=${VITE_ORDER_SERVICE_URL}
+      - NODE_ENV=${NODE_ENV}
     depends_on:
       - product-service
       - auth-service
@@ -21,11 +21,11 @@ services:
     build:
       context: ./services/order-service
       dockerfile: Dockerfile
+    env_file: .env
     environment:
-      - MONGODB_URI=mongodb://order-db:27017/orders
-      - JWT_SECRET=${JWT_SECRET}
-      - VITE_PRODUCT_SERVICE_URL=http://product-service:3000
       - PORT=3002
+      - MONGODB_URI=${MONGODB_URI_ORDER}
+      - JWT_SECRET=${JWT_SECRET}
     ports:
       - "3002:3002"
     depends_on:
@@ -33,10 +33,11 @@ services:
     networks:
       - ecommerce-network
     restart: unless-stopped
- 
+
   order-db:
     image: mongo:4.4
     container_name: order-db
+    restart: unless-stopped
     networks:
       - ecommerce-network
     ports:
@@ -45,28 +46,29 @@ services:
       - order-db-data:/data/db
     environment:
       - MONGO_INITDB_DATABASE=orders
- 
+
   auth-service:
     container_name: auth-service
     build:
       context: services/auth-service
       dockerfile: Dockerfile
+    env_file: .env
     environment:
-      - MONGODB_URI=mongodb://auth-db:27017/auth
-      - JWT_SECRET=efrei_super_pass
       - PORT=3001
-      - NODE_ENV=production
-      - CORS_ORIGIN=http://localhost:8080
+      - MONGODB_URI=${MONGODB_URI_AUTH}
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN}
     ports:
       - "3001:3001"
     depends_on:
       - auth-db
     networks:
       - ecommerce-network
- 
+
   auth-db:
     image: mongo:4.4
     container_name: auth-db
+    restart: unless-stopped
     networks:
       - ecommerce-network
     ports:
@@ -75,17 +77,17 @@ services:
       - auth-db-data:/data/db
     environment:
       - MONGO_INITDB_DATABASE=auth
- 
+
   product-service:
     container_name: product-service
     build:
-      context: .
+      context: . 
       dockerfile: services/product-service/Dockerfile
+    env_file: .env
     environment:
-      - MONGODB_URI=mongodb://product-db:27017/products
-      - JWT_SECRET=efrei_super_pass
       - PORT=3000
-      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI_PRODUCT}
+      - JWT_SECRET=${JWT_SECRET}
     ports:
       - "3000:3000"
     depends_on:
@@ -93,10 +95,11 @@ services:
     networks:
       - ecommerce-network
     restart: unless-stopped
- 
+
   product-db:
     image: mongo:4.4
     container_name: product-db
+    restart: unless-stopped
     networks:
       - ecommerce-network
     ports:
@@ -105,11 +108,11 @@ services:
       - product-db-data:/data/db
     environment:
       - MONGO_INITDB_DATABASE=products
- 
+
 networks:
   ecommerce-network:
     driver: bridge
- 
+
 volumes:
   order-db-data:
   auth-db-data:
