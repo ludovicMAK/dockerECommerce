@@ -57,7 +57,6 @@ services:
       - PORT=3001
       - MONGODB_URI=${MONGODB_URI_AUTH}
       - JWT_SECRET=${JWT_SECRET}
-      - CORS_ORIGIN=${CORS_ORIGIN}
     ports:
       - "3001:3001"
     depends_on:
