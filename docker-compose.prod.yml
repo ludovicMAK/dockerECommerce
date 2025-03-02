@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: registry.jgrandville.fr/e-commerce/frontend:lastest
+    image: registry.jgrandville.fr/e-commerce/frontend:latest
     container_name: frontend
     restart: always
     environment:
@@ -18,7 +18,7 @@ services:
       - ecommerce-prod-network
 
   auth-service:
-    image: registry.jgrandville.fr/e-commerce/auth-service:lastest
+    image: registry.jgrandville.fr/e-commerce/auth-service:latest
     container_name: auth-service
     restart: always
     env_file: .env.production
@@ -26,13 +26,14 @@ services:
       - PORT=3001
       - MONGODB_URI=${MONGODB_URI_AUTH}
       - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN}
     depends_on:
       - auth-db
     networks:
       - ecommerce-prod-network
 
   product-service:
-    image: registry.jgrandville.fr/e-commerce/product-service:lastest
+    image: registry.jgrandville.fr/e-commerce/product-service:latest
     container_name: product-service
     restart: always
     env_file: .env.production
@@ -46,7 +47,7 @@ services:
       - ecommerce-prod-network
 
   order-service:
-    image: registry.jgrandville.fr/e-commerce/order-service:lastest
+    image: registry.jgrandville.fr/e-commerce/order-service:latest
     container_name: order-service
     restart: always
     env_file: .env.production
