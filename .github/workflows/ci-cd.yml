@@ -39,52 +39,40 @@ jobs:
           
       - name: Build and Push Frontend
         run: |
-          docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} ./frontend
-          docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
           if [ ${{ github.ref }} = 'refs/heads/main' ]; then
-            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:latest
+            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:latest ./frontend
             docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:latest
-          fi
-          if [ ${{ github.ref }} = 'refs/heads/develop' ]; then
-            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:develop
+          else
+            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:develop ./frontend
             docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:develop
           fi
           
       - name: Build and Push Auth Service
         run: |
-          docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:${{ github.sha }} ./services/auth-service
-          docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:${{ github.sha }}
           if [ ${{ github.ref }} = 'refs/heads/main' ]; then
-            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:latest
+            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:latest ./services/auth-service
             docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:latest
-          fi
-          if [ ${{ github.ref }} = 'refs/heads/develop' ]; then
-            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:develop
+          else
+            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:develop ./services/auth-service
             docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:develop
           fi
           
       - name: Build and Push Product Service
         run: |
-          docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }} -f services/product-service/Dockerfile .
-          docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }}
           if [ ${{ github.ref }} = 'refs/heads/main' ]; then
-            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:latest
+            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:latest -f services/product-service/Dockerfile .
             docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:latest
-          fi
-          if [ ${{ github.ref }} = 'refs/heads/develop' ]; then
-            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:develop
+          else
+            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:develop -f services/product-service/Dockerfile .
             docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:develop
           fi
           
       - name: Build and Push Order Service
         run: |
-          docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:${{ github.sha }} ./services/order-service
-          docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:${{ github.sha }}
           if [ ${{ github.ref }} = 'refs/heads/main' ]; then
-            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:latest
+            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:latest ./services/order-service
             docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:latest
-          fi
-          if [ ${{ github.ref }} = 'refs/heads/develop' ]; then
-            docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:develop
+          else
+            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:develop ./services/order-service
             docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:develop
           fi 
