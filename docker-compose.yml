@@ -1,0 +1,118 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_PRODUCT_SERVICE_URL=${VITE_PRODUCT_SERVICE_URL}
+      - VITE_AUTH_SERVICE_URL=${VITE_AUTH_SERVICE_URL}
+      - VITE_ORDER_SERVICE_URL=${VITE_ORDER_SERVICE_URL}
+      - NODE_ENV=${NODE_ENV}
+    depends_on:
+      - product-service
+      - auth-service
+      - order-service
+    networks:
+      - ecommerce-network
+
+  order-service:
+    build:
+      context: ./services/order-service
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      - PORT=3002
+      - MONGODB_URI=${MONGODB_URI_ORDER}
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "3002:3002"
+    depends_on:
+      - order-db
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  order-db:
+    image: mongo:4.4
+    container_name: order-db
+    restart: unless-stopped
+    networks:
+      - ecommerce-network
+    ports:
+      - "27019:27017"
+    volumes:
+      - order-db-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=orders
+
+  auth-service:
+    container_name: auth-service
+    build:
+      context: services/auth-service
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      - PORT=3001
+      - MONGODB_URI=${MONGODB_URI_AUTH}
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "3001:3001"
+    depends_on:
+      - auth-db
+    networks:
+      - ecommerce-network
+
+  auth-db:
+    image: mongo:4.4
+    container_name: auth-db
+    restart: unless-stopped
+    networks:
+      - ecommerce-network
+    ports:
+      - "27017:27017"
+    volumes:
+      - auth-db-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=auth
+
+  product-service:
+    container_name: product-service
+    build:
+      context: . 
+      dockerfile: services/product-service/Dockerfile
+    env_file: .env
+    environment:
+      - PORT=3000
+      - MONGODB_URI=${MONGODB_URI_PRODUCT}
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - product-db
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  product-db:
+    image: mongo:4.4
+    container_name: product-db
+    restart: unless-stopped
+    networks:
+      - ecommerce-network
+    ports:
+      - "27018:27017"
+    volumes:
+      - product-db-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=products
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+volumes:
+  order-db-data:
+  auth-db-data:
+  product-db-data:

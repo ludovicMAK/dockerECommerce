@@ -1,0 +1,103 @@
+services:
+  frontend:
+    image: registry.jgrandville.fr/e-commerce/frontend:latest
+    container_name: frontend
+    restart: always
+    environment:
+      - VITE_PRODUCT_SERVICE_URL=${VITE_PRODUCT_SERVICE_URL}
+      - VITE_AUTH_SERVICE_URL=${VITE_AUTH_SERVICE_URL}
+      - VITE_ORDER_SERVICE_URL=${VITE_ORDER_SERVICE_URL}
+      - NODE_ENV=${NODE_ENV}
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - product-service
+      - order-service
+    networks:
+      - ecommerce-prod-network
+
+  auth-service:
+    image: registry.jgrandville.fr/e-commerce/auth-service:latest
+    container_name: auth-service
+    restart: always
+    env_file: .env.production
+    environment:
+      - PORT=3001
+      - MONGODB_URI=${MONGODB_URI_AUTH}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - auth-db
+    networks:
+      - ecommerce-prod-network
+
+  product-service:
+    image: registry.jgrandville.fr/e-commerce/product-service:latest
+    container_name: product-service
+    restart: always
+    env_file: .env.production
+    environment:
+      - PORT=3000
+      - MONGODB_URI=${MONGODB_URI_PRODUCT}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - product-db
+    networks:
+      - ecommerce-prod-network
+
+  order-service:
+    image: registry.jgrandville.fr/e-commerce/order-service:latest
+    container_name: order-service
+    restart: always
+    env_file: .env.production
+    environment:
+      - PORT=3002
+      - MONGODB_URI=${MONGODB_URI_ORDER}
+      - JWT_SECRET=${JWT_SECRET}
+      - VITE_PRODUCT_SERVICE_URL=${VITE_PRODUCT_SERVICE_URL}
+    depends_on:
+      - order-db
+    networks:
+      - ecommerce-prod-network
+
+  auth-db:
+    image: mongo:4.4
+    container_name: auth-db
+    restart: always
+    volumes:
+      - auth-db-data:/data/db
+    networks:
+      - ecommerce-prod-network
+    environment:
+      - MONGO_INITDB_DATABASE=auth
+
+  product-db:
+    image: mongo:4.4
+    container_name: product-db
+    restart: always
+    volumes:
+      - product-db-data:/data/db
+    networks:
+      - ecommerce-prod-network
+    environment:
+      - MONGO_INITDB_DATABASE=products
+
+  order-db:
+    image: mongo:4.4
+    container_name: order-db
+    restart: always
+    volumes:
+      - order-db-data:/data/db
+    networks:
+      - ecommerce-prod-network
+    environment:
+      - MONGO_INITDB_DATABASE=orders
+
+networks:
+  ecommerce-prod-network:
+    driver: bridge
+
+volumes:
+  auth-db-data:
+  product-db-data:
+  order-db-data:
