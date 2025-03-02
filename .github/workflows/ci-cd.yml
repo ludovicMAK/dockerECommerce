@@ -65,7 +65,7 @@ jobs:
           
       - name: Build and Push Product Service
         run: |
-          docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }} .
+          docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }} -f services/product-service/Dockerfile .
           docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }}
           if [ ${{ github.ref }} = 'refs/heads/main' ]; then
             docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:latest
