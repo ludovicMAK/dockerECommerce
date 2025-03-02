@@ -1,12 +1,12 @@
-FROM node:18-alpine as build-stage
+FROM node:18-alpine AS build-stage
 WORKDIR /app
 
-COPY package.json ./
-RUN npm install --production --frozen-lockfile
+COPY package*.json ./
+RUN npm ci --production
 
 COPY . .
 
-FROM node:18-alpine as production
+FROM node:18-alpine AS production
 WORKDIR /app
 COPY --from=build-stage /app /app
 

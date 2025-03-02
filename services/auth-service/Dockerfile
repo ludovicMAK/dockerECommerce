@@ -2,8 +2,8 @@
 FROM node:18-alpine AS build-stage
 WORKDIR /app
 
-COPY package.json ./
-RUN npm install --production --frozen-lockfile
+COPY package*.json ./
+RUN npm ci --production
 
 COPY . .
 

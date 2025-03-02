@@ -5,7 +5,7 @@ RUN apk --no-cache add curl
 
 # Copier les fichiers de dépendances
 COPY services/product-service/package*.json ./
-RUN npm install --production
+RUN npm ci --production
 
 # Copier le reste des fichiers de l'application
 COPY services/product-service/src/ ./src/
