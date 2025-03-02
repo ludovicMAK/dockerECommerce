@@ -66,10 +66,10 @@ jobs:
           REGISTRY: ${{ secrets.REGISTRY_URL }}
         run: |
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            docker build -t ${REGISTRY}/${IMAGE_NAME}/product-service:latest ./services/product-service
+            docker build -t ${REGISTRY}/${IMAGE_NAME}/product-service:latest -f services/product-service/Dockerfile .
             docker push ${REGISTRY}/${IMAGE_NAME}/product-service:latest
           else
-            docker build -t ${REGISTRY}/${IMAGE_NAME}/product-service:develop ./services/product-service
+            docker build -t ${REGISTRY}/${IMAGE_NAME}/product-service:develop -f services/product-service/Dockerfile .
             docker push ${REGISTRY}/${IMAGE_NAME}/product-service:develop
           fi
           
