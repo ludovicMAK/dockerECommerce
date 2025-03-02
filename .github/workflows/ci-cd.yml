@@ -84,3 +84,4 @@ jobs:
             docker build -t ${REGISTRY}/${IMAGE_NAME}/order-service:develop ./services/order-service
             docker push ${REGISTRY}/${IMAGE_NAME}/order-service:develop
           fi 
+
