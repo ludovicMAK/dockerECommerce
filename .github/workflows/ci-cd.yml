@@ -8,6 +8,7 @@ on:
 
 env:
   IMAGE_NAME: e-commerce
+  REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
 
 jobs:
   test:
@@ -23,72 +24,69 @@ jobs:
           chmod +x ./scripts/run-tests.sh
           ./scripts/run-tests.sh
 
-  build-and-push:
-    needs: test
-    runs-on: ubuntu-20.04
-    if: github.event_name == 'push'
+  verify-secrets:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Check Required Secrets
+        run: |
+          if [ -z "${{ secrets.REGISTRY_URL }}" ]; then
+            echo "Error: REGISTRY_URL secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.REGISTRY_USER }}" ]; then
+            echo "Error: REGISTRY_USER secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.REGISTRY_PASSWORD }}" ]; then
+            echo "Error: REGISTRY_PASSWORD secret is not set"
+            exit 1
+          fi
+
+  build-and-push:
+    needs: [test, verify-secrets]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       
-      - name: Login to Private Registry
-        uses: docker/login-action@v1
+      - name: Login to Registry
+        uses: docker/login-action@v3
         with:
           registry: ${{ secrets.REGISTRY_URL }}
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
       
-      - name: Set Docker Tags
-        id: docker_tags
+      - name: Build and push images
+        env:
+          REGISTRY: ${{ secrets.REGISTRY_URL }}
+          SHA: ${{ github.sha }}
         run: |
-          if [ ${{ github.ref }} = 'refs/heads/main' ]; then
-            echo "::set-output name=tags::${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:latest,${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}"
-          else
-            echo "::set-output name=tags::${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:develop"
-          fi
-          
-      - name: Build and Push Frontend
-        uses: docker/build-push-action@v2
-        with:
-          context: ./frontend
-          push: true
-          tags: ${{ steps.docker_tags.outputs.tags }}
-          cache-from: type=registry,ref=${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:latest
-          cache-to: type=inline
-
-      - name: Build and Push Services
-        run: |
-          SERVICES=("auth-service" "product-service" "order-service")
+          SERVICES=("frontend" "auth-service" "product-service" "order-service")
+          BRANCH_TAG=${{ github.ref == 'refs/heads/main' && 'latest' || 'develop' }}
           
           for service in "${SERVICES[@]}"; do
-            echo "Building and pushing $service..."
+            echo "Building $service..."
             
-            # Build the image
-            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/$service:${{ github.sha }} \
-              $([ "$service" == "product-service" ] && echo "-f services/$service/Dockerfile ." || echo "./services/$service")
-            
-            # Push SHA tagged image
-            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/$service:${{ github.sha }}
-            
-            # Tag and push based on branch
-            if [ ${{ github.ref }} = 'refs/heads/main' ]; then
-              docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/$service:${{ github.sha }} \
-                ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/$service:latest
-              docker push $service:latest
+            # Définir le context et dockerfile
+            if [ "$service" == "product-service" ]; then
+              CONTEXT="."
+              DOCKERFILE="services/product-service/Dockerfile"
             else
-              docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/$service:${{ github.sha }} \
-                ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/$service:develop
-              docker push $service:develop
+              CONTEXT="./services/$service"
+              DOCKERFILE="Dockerfile"
+              [ "$service" == "frontend" ] && CONTEXT="./frontend"
             fi
+            
+            # Build et push
+            docker build -t $REGISTRY/$IMAGE_NAME/$service:$SHA \
+              -t $REGISTRY/$IMAGE_NAME/$service:$BRANCH_TAG \
+              -f $DOCKERFILE $CONTEXT
+            
+            docker push $REGISTRY/$IMAGE_NAME/$service:$SHA
+            docker push $REGISTRY/$IMAGE_NAME/$service:$BRANCH_TAG
+            
+            echo "Successfully pushed $service images"
           done
-
-      - name: Verify Images
-        run: |
-          if [ ${{ github.ref }} = 'refs/heads/main' ]; then
-            for service in frontend auth-service product-service order-service; do
-              echo "Verifying $service latest tag..."
-              docker pull ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/$service:latest
-            done
-          fi
