@@ -1,5 +1,3 @@
-[📌 ReadME](README.md) | [🚀 Documentaion](Documentation.md)
-
 # 🚀 Docker E-Commerce Project
 
 ## 🏗️ Architecture et bonnes pratiques
