@@ -38,41 +38,50 @@ jobs:
           password: ${{ secrets.REGISTRY_PASSWORD }}
           
       - name: Build and Push Frontend
+        env:
+          REGISTRY: ${{ secrets.REGISTRY_URL }}
         run: |
-          if [ ${{ github.ref }} = 'refs/heads/main' ]; then
-            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:latest ./frontend
-            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:latest
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            docker build -t ${REGISTRY}/${IMAGE_NAME}/frontend:latest ./frontend
+            docker push ${REGISTRY}/${IMAGE_NAME}/frontend:latest
           else
-            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:develop ./frontend
-            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/frontend:develop
+            docker build -t ${REGISTRY}/${IMAGE_NAME}/frontend:develop ./frontend
+            docker push ${REGISTRY}/${IMAGE_NAME}/frontend:develop
           fi
           
       - name: Build and Push Auth Service
+        env:
+          REGISTRY: ${{ secrets.REGISTRY_URL }}
         run: |
-          if [ ${{ github.ref }} = 'refs/heads/main' ]; then
-            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:latest ./services/auth-service
-            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:latest
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            docker build -t ${REGISTRY}/${IMAGE_NAME}/auth-service:latest ./services/auth-service
+            docker push ${REGISTRY}/${IMAGE_NAME}/auth-service:latest
           else
-            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:develop ./services/auth-service
-            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/auth-service:develop
+            docker build -t ${REGISTRY}/${IMAGE_NAME}/auth-service:develop ./services/auth-service
+            docker push ${REGISTRY}/${IMAGE_NAME}/auth-service:develop
           fi
           
       - name: Build and Push Product Service
+        env:
+          REGISTRY: ${{ secrets.REGISTRY_URL }}
         run: |
-          if [ ${{ github.ref }} = 'refs/heads/main' ]; then
-            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:latest -f services/product-service/Dockerfile .
-            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:latest
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            docker build -t ${REGISTRY}/${IMAGE_NAME}/product-service:latest -f services/product-service/Dockerfile .
+            docker push ${REGISTRY}/${IMAGE_NAME}/product-service:latest
           else
-            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:develop -f services/product-service/Dockerfile .
-            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/product-service:develop
+            docker build -t ${REGISTRY}/${IMAGE_NAME}/product-service:develop -f services/product-service/Dockerfile .
+            docker push ${REGISTRY}/${IMAGE_NAME}/product-service:develop
           fi
           
       - name: Build and Push Order Service
+        env:
+          REGISTRY: ${{ secrets.REGISTRY_URL }}
         run: |
-          if [ ${{ github.ref }} = 'refs/heads/main' ]; then
-            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:latest ./services/order-service
-            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:latest
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            docker build -t ${REGISTRY}/${IMAGE_NAME}/order-service:latest ./services/order-service
+            docker push ${REGISTRY}/${IMAGE_NAME}/order-service:latest
           else
-            docker build -t ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:develop ./services/order-service
-            docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}/order-service:develop
+            docker build -t ${REGISTRY}/${IMAGE_NAME}/order-service:develop ./services/order-service
+            docker push ${REGISTRY}/${IMAGE_NAME}/order-service:develop
           fi 
+
